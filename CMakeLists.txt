@@ -8,6 +8,6 @@ INCLUDE(${VTK_USE_FILE})
 ADD_EXECUTABLE(BezierSource Example_Source.cxx vtkBezierSurfaceSource.cxx)
 TARGET_LINK_LIBRARIES(BezierSource vtkHybrid)
 
-ADD_EXECUTABLE(BezierWidget Example_Widget.cxx vtkBezierSurfaceWidget.cxx)
-TARGET_LINK_LIBRARIES(BezierWidget vtkHybrid)
+ADD_EXECUTABLE(BezierWidget Example_Widget.cxx vtkBezierSurfaceWidget.cxx vtkBezierSurfaceSource.cxx)
+TARGET_LINK_LIBRARIES(BezierWidget vtkHybrid vtkWidgets)
 

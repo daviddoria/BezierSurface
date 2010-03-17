@@ -41,57 +41,56 @@ struct HandleInfo;
 class vtkBezierSurfaceWidget : public vtk3DWidget
 {
 public:
-   static vtkBezierSurfaceWidget *New();
+  static vtkBezierSurfaceWidget *New();
 
-    vtkTypeRevisionMacro(vtkBezierSurfaceWidget, vtk3DWidget);
-    void PrintSelf(ostream& os, vtkIndent indent);
+  vtkTypeRevisionMacro(vtkBezierSurfaceWidget, vtk3DWidget);
+  void PrintSelf(ostream& os, vtkIndent indent);
 
-    void SetSource(vtkBezierSurfaceSource* source);
-    vtkBezierSurfaceSource* GetSource();
+  void SetSource(vtkBezierSurfaceSource* source);
+  vtkBezierSurfaceSource* GetSource();
 
-    void SetProperty(vtkProperty* property);
-    vtkProperty* GetProperty();
+  void SetProperty(vtkProperty* property);
+  vtkProperty* GetProperty();
 
-    // Implementing the vtk3DWidget interface.
-    void SetInteractor(vtkRenderWindowInteractor* iren);
-    void SetProp3D(vtkProp3D* prop);
-    void SetInput(vtkDataSet* dataSet);
-    void SetEnabled(int val);
-    void PlaceWidget(double bounds[6]);
-    void SetPlaceFactor(double val);
-    void SetHandleSize(double size);
+  // Implementing the vtk3DWidget interface.
+  void SetInteractor(vtkRenderWindowInteractor* iren);
+  void SetProp3D(vtkProp3D* prop);
+  void SetInput(vtkDataSet* dataSet);
+  void SetEnabled(int val);
+  void PlaceWidget(double bounds[6]);
+  void SetPlaceFactor(double val);
+  void SetHandleSize(double size);
 
 protected:
-    vtkBezierSurfaceWidget();
-    ~vtkBezierSurfaceWidget();
+  vtkBezierSurfaceWidget();
+  ~vtkBezierSurfaceWidget();
 
-    vtkRenderer* GetRenderer();
-    void DestroyHandles();
-    void SizeHandles();
-    void ConstructHandles();
-    void SelectHandle(int index);
-    void UnSelectCurrentHandle();
+  vtkRenderer* GetRenderer();
+  void DestroyHandles();
+  void SizeHandles();
+  void ConstructHandles();
+  void SelectHandle(int index);
+  void UnSelectCurrentHandle();
 
-    static void ProcessEvents(vtkObject* object, unsigned long event, void* clientdata, void* calldata);
+  static void ProcessEvents(vtkObject* object, unsigned long event, void* clientdata, void* calldata);
 
-    // ProcessEvents() dispatches to these methods.
-    virtual void OnLeftButtonDown();
-    virtual void OnMouseMove();
-    virtual void OnLeftButtonUp();
-
-private:
-    vtkBezierSurfaceSource* Source;
-    std::vector<HandleInfo*> HandleInfoList;
-    int CurrHandleIndex;
-    vtkProperty* Property;
-    vtkPropPicker* Picker;
-    vtkPolyDataMapper* CPGridMapper;
-    vtkActor* CPGridActor;
+  // ProcessEvents() dispatches to these methods.
+  virtual void OnLeftButtonDown();
+  virtual void OnMouseMove();
+  virtual void OnLeftButtonUp();
 
 private:
-    vtkBezierSurfaceWidget(const vtkBezierSurfaceWidget&);  //Not implemented
-    void operator=(const vtkBezierSurfaceWidget&);  //Not implemented
+  vtkBezierSurfaceSource* Source;
+  std::vector<HandleInfo*> HandleInfoList;
+  int CurrHandleIndex;
+  vtkProperty* Property;
+  vtkPropPicker* Picker;
+  vtkPolyDataMapper* CPGridMapper;
+  vtkActor* CPGridActor;
+
+private:
+  vtkBezierSurfaceWidget(const vtkBezierSurfaceWidget&);  //Not implemented
+  void operator=(const vtkBezierSurfaceWidget&);  //Not implemented
 };
 
 #endif
-

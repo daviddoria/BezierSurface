@@ -23,7 +23,7 @@ Authors:
 
 Credits:
     The bezier surface algorithm is based on the code and concepts presented in
-    this page: "Bézier Surface (in 3D)"
+    this page: "Bï¿½zier Surface (in 3D)"
     http://local.wasp.uwa.edu.au/~pbourke/geometry/bezier/index.html
 
     Credits to Paul Bourke for explaining Bezier surfaces so well.
@@ -38,42 +38,40 @@ class vtkImageData;
 class vtkBezierSurfaceSource : public vtkPolyDataAlgorithm
 {
 public:
-    static vtkBezierSurfaceSource *New();
-    vtkTypeRevisionMacro(vtkBezierSurfaceSource, vtkPolyDataAlgorithm);
-    void PrintSelf(ostream& os, vtkIndent indent);
+  static vtkBezierSurfaceSource *New();
+  vtkTypeRevisionMacro(vtkBezierSurfaceSource, vtkPolyDataAlgorithm);
+  void PrintSelf(ostream& os, vtkIndent indent);
 
-    vtkPolyData* GetControlPointsOutput();
-    vtkPolyData* GetBezierSurfaceOutput(); // same as GetOutput()
+  vtkPolyData* GetControlPointsOutput();
+  vtkPolyData* GetBezierSurfaceOutput(); // same as GetOutput()
 
-    void SetNumberOfControlPoints(int m, int n);
-    int* GetNumberOfControlPoints() { return this->NumberOfControlPoints; }
+  void SetNumberOfControlPoints(int m, int n);
+  int* GetNumberOfControlPoints() { return this->NumberOfControlPoints; }
 
-    void SetControlPoint(int m, int n, double pt[3]);
-    void GetControlPoint(int m, int n, double pt[3]);
-    double* GetControlPoint(int m, int n);
-    void ResetControlPoints();
+  void SetControlPoint(int m, int n, double pt[3]);
+  void GetControlPoint(int m, int n, double pt[3]);
+  double* GetControlPoint(int m, int n);
+  void ResetControlPoints();
 
-    void SetDimensions(int x, int y);
-    int* GetDimensions() { return this->Dimensions; }
+  void SetDimensions(int x, int y);
+  int* GetDimensions() { return this->Dimensions; }
 
 protected:
-    vtkBezierSurfaceSource();
-    ~vtkBezierSurfaceSource();
-    int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  vtkBezierSurfaceSource();
+  ~vtkBezierSurfaceSource();
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
 private:
-    vtkBezierSurfaceSource(const vtkBezierSurfaceSource&);  // Not implemented.
-    void operator=(const vtkBezierSurfaceSource&);  // Not implemented.
+  vtkBezierSurfaceSource(const vtkBezierSurfaceSource&);  // Not implemented.
+  void operator=(const vtkBezierSurfaceSource&);  // Not implemented.
 
-    void UpdateControlPointsPolyData(vtkPolyData* pd);
-    void UpdateBezierSurfacePolyData(vtkPolyData* pd);
+  void UpdateControlPointsPolyData(vtkPolyData* pd);
+  void UpdateBezierSurfacePolyData(vtkPolyData* pd);
 
 private:
-    int NumberOfControlPoints[2];
-    int Dimensions[2];
-    double* ControlPoints;
+  int NumberOfControlPoints[2];
+  int Dimensions[2];
+  double* ControlPoints;
 };
 
 #endif
-
-
