@@ -19,12 +19,12 @@ int main(int argc, char *argv[])
 {
   //Create a renderer, render window, and interactor
   vtkSmartPointer<vtkRenderer> renderer = 
-      vtkSmartPointer<vtkRenderer>::New();
+    vtkSmartPointer<vtkRenderer>::New();
   vtkSmartPointer<vtkRenderWindow> renderWindow = 
-      vtkSmartPointer<vtkRenderWindow>::New();
+    vtkSmartPointer<vtkRenderWindow>::New();
   renderWindow->AddRenderer(renderer);
   vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = 
-      vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    vtkSmartPointer<vtkRenderWindowInteractor>::New();
   renderWindowInteractor->SetRenderWindow(renderWindow);
 
   vtkSmartPointer<vtkBezierSurfaceSource> bezierSource =
