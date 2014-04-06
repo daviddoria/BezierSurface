@@ -160,17 +160,20 @@ vtkBezierSurfaceWidget::~vtkBezierSurfaceWidget()
     if(this->Property)
       {
       this->Property->UnRegister(this);
+      this->Property->Delete();
       }
     if(this->Source)
       {
-      this->Property->UnRegister(this);
+      this->Source->UnRegister(this);
       }
     if(this->Picker)
       {
       this->Picker->UnRegister(this);
+      this->Picker->Delete();
       }
     if(this->CPGridActor)
       {
+      this->GetRenderer()->RemoveViewProp(this->CPGridActor);
       this->CPGridActor->Delete();
       }
 }
