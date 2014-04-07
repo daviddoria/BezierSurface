@@ -1,25 +1,28 @@
 /****************************************************************************
-**
-** Copyright (C) VCreate Logic Private Limited, Bangalore
-**
-** Use of this file is limited according to the terms specified by
-** VCreate Logic Private Limited, Bangalore. Details of those terms
-** are listed in licence.txt included as part of the distribution package
-** of this file. This file may not be distributed without including the
-** licence.txt file.
-**
-** Contact info@vcreatelogic.com if any conditions of this licensing are
-** not clear to you.
-**
-** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-**
-****************************************************************************/
+ **
+ ** Copyright (C) VCreate Logic Private Limited, Bangalore
+ **
+ ** Use of this file is limited according to the terms specified by
+ ** VCreate Logic Private Limited, Bangalore. Details of those terms
+ ** are listed in licence.txt included as part of the distribution package
+ ** of this file. This file may not be distributed without including the
+ ** licence.txt file.
+ **
+ ** Contact info@vcreatelogic.com if any conditions of this licensing are
+ ** not clear to you.
+ **
+ ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ **
+ ****************************************************************************/
 
 /**
-Authors:
-    Prashanth N Udupa (prashanth@vcreatelogic.com)
-    Brian Gee Chacko (brian.chacko@vcreatelogic.com)
+   Original Authors:
+   Prashanth N Udupa (prashanth@vcreatelogic.com)
+   Brian Gee Chacko (brian.chacko@vcreatelogic.com)
+
+   Contributors:
+   Rafael Palomar (rafaelpalomaravalos@gmail.com)
 */
 
 #include "vtkBezierSurfaceWidget.h"
@@ -64,7 +67,7 @@ struct HandleInfo
   {
     if(this->Source)
       {
-      return;
+        return;
       }
 
     this->Source = vtkSphereSource::New();
@@ -82,7 +85,7 @@ struct HandleInfo
   {
     if(this->Source)
       {
-      this->Source->SetRadius(r);
+        this->Source->SetRadius(r);
       }
   }
 
@@ -90,7 +93,7 @@ struct HandleInfo
   {
     if(this->Source)
       {
-      this->Source->SetCenter(x, y, z);
+        this->Source->SetCenter(x, y, z);
       }
   }
 
@@ -116,7 +119,7 @@ struct HandleInfo
   {
     if(this->Actor)
       {
-      this->Actor->SetVisibility(val);
+        this->Actor->SetVisibility(val);
       }
   }
 
@@ -124,7 +127,7 @@ struct HandleInfo
   {
     if(this->Actor)
       {
-      this->Actor->SetProperty(prop);
+        this->Actor->SetProperty(prop);
       }
   }
 
@@ -156,26 +159,26 @@ vtkBezierSurfaceWidget::vtkBezierSurfaceWidget()
 
 vtkBezierSurfaceWidget::~vtkBezierSurfaceWidget()
 {
-    this->DestroyHandles();
-    if(this->Property)
-      {
+  this->DestroyHandles();
+  if(this->Property)
+    {
       this->Property->UnRegister(this);
       this->Property->Delete();
-      }
-    if(this->Source)
-      {
+    }
+  if(this->Source)
+    {
       this->Source->UnRegister(this);
-      }
-    if(this->Picker)
-      {
+    }
+  if(this->Picker)
+    {
       this->Picker->UnRegister(this);
       this->Picker->Delete();
-      }
-    if(this->CPGridActor)
-      {
+    }
+  if(this->CPGridActor)
+    {
       this->GetRenderer()->RemoveViewProp(this->CPGridActor);
       this->CPGridActor->Delete();
-      }
+    }
 }
 
 void vtkBezierSurfaceWidget::PrintSelf(ostream& os, vtkIndent indent)
@@ -187,38 +190,38 @@ void vtkBezierSurfaceWidget::SetSource(vtkBezierSurfaceSource* source)
 {
   if(this->Source == source)
     {
-    return;
+      return;
     }
 
   if(this->Source)
     {
-    this->Source->UnRegister(this);
-    this->CPGridActor->Delete();
-    this->CPGridMapper = 0;
-    this->CPGridActor = 0;
-    this->DestroyHandles();
+      this->Source->UnRegister(this);
+      this->CPGridActor->Delete();
+      this->CPGridMapper = 0;
+      this->CPGridActor = 0;
+      this->DestroyHandles();
     }
 
   this->Source = source;
 
   if(this->Source)
     {
-    this->Source->Register(this);
+      this->Source->Register(this);
 
-    this->CPGridMapper = vtkPolyDataMapper::New();
-    this->CPGridActor = vtkActor::New();
-    this->CPGridMapper->SetInput( this->Source->GetControlPointsOutput() );
-    this->CPGridActor->SetMapper(this->CPGridMapper);
-    this->CPGridMapper->Delete();
+      this->CPGridMapper = vtkPolyDataMapper::New();
+      this->CPGridActor = vtkActor::New();
+      this->CPGridMapper->SetInput( this->Source->GetControlPointsOutput() );
+      this->CPGridActor->SetMapper(this->CPGridMapper);
+      this->CPGridMapper->Delete();
     }
 
   if(this->Interactor && this->Source)
     {
-    SetEnabled(1);
+      SetEnabled(1);
     }
   else
     {
-    SetEnabled(0);
+      SetEnabled(0);
     }
 }
 
@@ -231,16 +234,16 @@ void vtkBezierSurfaceWidget::SetProperty(vtkProperty* property)
 {
   if(this->Property == property)
     {
-    return;
+      return;
     }
 
   if(this->Property)
     {
-    this->Property->UnRegister(this);
-    for(uint i=0; i<this->HandleInfoList.size(); i++)
-      {
-      this->HandleInfoList[i]->SetProperty(0);
-      }
+      this->Property->UnRegister(this);
+      for(uint i=0; i<this->HandleInfoList.size(); i++)
+        {
+          this->HandleInfoList[i]->SetProperty(0);
+        }
     }
 
   this->Property = property;
@@ -250,7 +253,7 @@ void vtkBezierSurfaceWidget::SetProperty(vtkProperty* property)
       this->Property->Register(this);
       for(uint i=0; i<this->HandleInfoList.size(); i++)
         {
-        this->HandleInfoList[i]->SetProperty(this->Property);
+          this->HandleInfoList[i]->SetProperty(this->Property);
         }
     }
 }
@@ -265,12 +268,12 @@ void vtkBezierSurfaceWidget::SetInteractor(vtkRenderWindowInteractor* iren)
   vtk3DWidget::SetInteractor(iren);
   if(this->Interactor && this->Source)
     {
-    SetEnabled(1);
+      SetEnabled(1);
     }
   else
     {
-    SetEnabled(0);
-    }  
+      SetEnabled(0);
+    }
 }
 
 void vtkBezierSurfaceWidget::SetProp3D(vtkProp3D*)
@@ -283,88 +286,88 @@ void vtkBezierSurfaceWidget::SetInput(vtkDataSet* dataSet)
   vtkBezierSurfaceSource* bss = reinterpret_cast<vtkBezierSurfaceSource*>(dataSet);
   if(!bss)
     {
-    vtkOutputWindow::GetInstance()->DisplayWarningText("SetInput() is disabled. Use SetSource() instead");
+      vtkOutputWindow::GetInstance()->DisplayWarningText("SetInput() is disabled. Use SetSource() instead");
     }
   else
     {
-    SetSource(bss);
+      SetSource(bss);
     }
 }
 
 void vtkBezierSurfaceWidget::SetEnabled(int enabled)
 {
-    if(this->Enabled == enabled)
-      {
+  if(this->Enabled == enabled)
+    {
       return;
-      }
+    }
 
-    if(enabled)
-      {
-        if( !(this->Interactor && this->Source) )
-          {
+  if(enabled)
+    {
+      if( !(this->Interactor && this->Source) )
+        {
           return;
-          }
-      }
+        }
+    }
 
-    if(enabled)
-      {
+  if(enabled)
+    {
       this->ConstructHandles();
 
       // Start the interactor callbacks
       vtkRenderWindowInteractor *i = this->Interactor;
       i->AddObserver(vtkCommand::MouseMoveEvent,
-                  this->EventCallbackCommand,this->Priority);
+                     this->EventCallbackCommand,this->Priority);
       i->AddObserver(vtkCommand::LeftButtonPressEvent,
-                  this->EventCallbackCommand, this->Priority);
+                     this->EventCallbackCommand, this->Priority);
       i->AddObserver(vtkCommand::LeftButtonReleaseEvent,
-                  this->EventCallbackCommand, this->Priority);
+                     this->EventCallbackCommand, this->Priority);
 
       // Enable handle visibility
       for(uint i=0; i<this->HandleInfoList.size(); i++)
         {
-        this->HandleInfoList[i]->SetVisibility(1);
+          this->HandleInfoList[i]->SetVisibility(1);
         }
-        
+
       if(this->CPGridActor)
         {
-        vtkRenderer* ren = this->GetRenderer();
-        if(ren)
+          vtkRenderer* ren = this->GetRenderer();
+          if(ren)
             ren->AddActor(this->CPGridActor);
         }
 
       this->InvokeEvent(vtkCommand::EnableEvent, NULL);
-      }
+    }
 
-    if(!enabled)
-      {
-        // Disable handle visibility
-        for(uint i=0; i<this->HandleInfoList.size(); i++)
-          {
+  if(!enabled)
+    {
+      // Disable handle visibility
+      for(uint i=0; i<this->HandleInfoList.size(); i++)
+        {
           this->HandleInfoList[i]->SetVisibility(0);
-          }
-        if(this->CPGridActor)
-          {
+        }
+      if(this->CPGridActor)
+        {
           vtkRenderer* ren = this->GetRenderer();
           if(ren)
             {
-            ren->RemoveActor(this->CPGridActor);
+              ren->RemoveActor(this->CPGridActor);
             }
-          }
+        }
 
-        this->InvokeEvent(vtkCommand::DisableEvent, NULL);
-      }
+      this->InvokeEvent(vtkCommand::DisableEvent, NULL);
+    }
 
-    if(this->Interactor->GetRenderWindow())
-      {
+  if(this->Interactor->GetRenderWindow())
+    {
       this->Interactor->GetRenderWindow()->Render();
-      }
+    }
 
-    this->Enabled = enabled;
+  this->Enabled = enabled;
 
-    if(enabled)
-      {
+  if(enabled)
+    {
       this->SizeHandles();
-      }
+    }
 }
 
 void vtkBezierSurfaceWidget::PlaceWidget(double[6])
@@ -388,15 +391,15 @@ vtkRenderer* vtkBezierSurfaceWidget::GetRenderer()
   vtkRenderer* ren = this->GetDefaultRenderer();
   if(!ren)
     {
-    ren = this->GetCurrentRenderer();
+      ren = this->GetCurrentRenderer();
     }
   if(!ren)
     {
-    ren = this->Interactor->FindPokedRenderer(
-            this->Interactor->GetLastEventPosition()[0],
-            this->Interactor->GetLastEventPosition()[1]
-        );
-    this->SetCurrentRenderer(ren);
+      ren = this->Interactor->FindPokedRenderer(
+                                                this->Interactor->GetLastEventPosition()[0],
+                                                this->Interactor->GetLastEventPosition()[1]
+                                                );
+      this->SetCurrentRenderer(ren);
     }
 
   return ren;
@@ -412,7 +415,7 @@ void vtkBezierSurfaceWidget::DestroyHandles()
       HandleInfo* info = this->HandleInfoList[i];
       if(ren)
         {
-        ren->RemoveActor(info->Actor);
+          ren->RemoveActor(info->Actor);
         }
       info->Finish();
     }
@@ -425,8 +428,8 @@ void vtkBezierSurfaceWidget::SizeHandles()
   double radius = 0.05;
   for(uint i=0; i<this->HandleInfoList.size(); i++)
     {
-    HandleInfo* info = this->HandleInfoList[i];
-    info->SetRadius(radius);
+      HandleInfo* info = this->HandleInfoList[i];
+      info->SetRadius(radius);
     }
 }
 
@@ -436,7 +439,7 @@ void vtkBezierSurfaceWidget::ConstructHandles()
 
   if(!this->Source || !ren)
     {
-    return;
+      return;
     }
 
   // Construct as many mappers and actors as control points
@@ -448,24 +451,24 @@ void vtkBezierSurfaceWidget::ConstructHandles()
     {
       for(int j=0; j<vec[1]; j++)
         {
-        double* pt = this->Source->GetControlPoint(i, j);
+          double* pt = this->Source->GetControlPoint(i, j);
 
-        HandleInfo* info = new HandleInfo;
-        info->Init();
-        info->SetPosition(pt);
-        info->SetProperty(this->Property);
-        info->SetVisibility(this->GetEnabled());
+          HandleInfo* info = new HandleInfo;
+          info->Init();
+          info->SetPosition(pt);
+          info->SetProperty(this->Property);
+          info->SetVisibility(this->GetEnabled());
 
-        // Store the control point indexes too to retrieve them later
-        info->xCPIndex = i;
-        info->yCPIndex = j;
+          // Store the control point indexes too to retrieve them later
+          info->xCPIndex = i;
+          info->yCPIndex = j;
 
-        this->HandleInfoList[index++] = info;
+          this->HandleInfoList[index++] = info;
 
-        ren->AddActor(info->Actor);
+          ren->AddActor(info->Actor);
 
-        // Add the actor to pick list
-        this->Picker->AddPickList(info->Actor);
+          // Add the actor to pick list
+          this->Picker->AddPickList(info->Actor);
         }
     }
 
@@ -477,7 +480,7 @@ void vtkBezierSurfaceWidget::SelectHandle(int index)
 {
   if(index < 0 || index >= (int)this->HandleInfoList.size())
     {
-    return;
+      return;
     }
 
   HandleInfo *info = this->HandleInfoList[index];
@@ -497,7 +500,7 @@ void vtkBezierSurfaceWidget::UnSelectCurrentHandle()
 {
   if(this->CurrHandleIndex < 0)
     {
-    return;
+      return;
     }
 
   HandleInfo *info = this->HandleInfoList[this->CurrHandleIndex];
@@ -511,17 +514,17 @@ void vtkBezierSurfaceWidget::ProcessEvents(vtkObject*, unsigned long event, void
 
   switch(event)
     {
-      case vtkCommand::LeftButtonPressEvent:
-          self->OnLeftButtonDown();
-          break;
-      case vtkCommand::LeftButtonReleaseEvent:
-          self->OnLeftButtonUp();
-          break;
-      case vtkCommand::MouseMoveEvent:
-          self->OnMouseMove();
-          break;
-      default:
-          break;
+    case vtkCommand::LeftButtonPressEvent:
+      self->OnLeftButtonDown();
+      break;
+    case vtkCommand::LeftButtonReleaseEvent:
+      self->OnLeftButtonUp();
+      break;
+    case vtkCommand::MouseMoveEvent:
+      self->OnMouseMove();
+      break;
+    default:
+      break;
     }
 }
 
@@ -535,7 +538,7 @@ void vtkBezierSurfaceWidget::OnLeftButtonDown()
   vtkRenderer *ren = this->GetCurrentRenderer();
 
   if(!ren)
-      return;
+    return;
 
   // Pick from the renderer
   this->Picker->Pick(double(x), double(y), 0.0, ren);
@@ -546,8 +549,8 @@ void vtkBezierSurfaceWidget::OnLeftButtonDown()
   vtkActor *pickedActor = this->Picker->GetActor();
   if(!pickedActor)
     {
-    UnSelectCurrentHandle();
-    return;
+      UnSelectCurrentHandle();
+      return;
     }
 
   // Highlight the picked handle
@@ -557,15 +560,15 @@ void vtkBezierSurfaceWidget::OnLeftButtonDown()
       HandleInfo *info = this->HandleInfoList[i];
       if(pickedActor == info->Actor)
         {
-        this->SelectHandle(i);
-        break;
+          this->SelectHandle(i);
+          break;
         }
     }
 
   // Handle Index not found
   if(this->CurrHandleIndex < 0)
     {
-    return;
+      return;
     }
 
   this->EventCallbackCommand->SetAbortFlag(1);
@@ -582,7 +585,7 @@ void vtkBezierSurfaceWidget::OnMouseMove()
   // If no handle index was found
   if(this->CurrHandleIndex < 0)
     {
-    return;
+      return;
     }
 
   // Motion vector calculations
@@ -626,7 +629,7 @@ void vtkBezierSurfaceWidget::OnLeftButtonUp()
   // If no handle index was found
   if(this->CurrHandleIndex < 0)
     {
-    return;
+      return;
     }
 
   // Get the handle info of the current handle

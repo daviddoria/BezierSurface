@@ -43,6 +43,8 @@ Credits:
 #include <vtkOutputWindow.h>
 #include <vtkSmartPointer.h>
 
+#include <iostream>
+
 #include <cmath>
 
 vtkCxxRevisionMacro(vtkBezierSurfaceSource, "$Revision: 1.53 $");
@@ -52,6 +54,12 @@ vtkBezierSurfaceSource::vtkBezierSurfaceSource()
 {
   this->Dimensions[0] = 10;
   this->Dimensions[1] = 10;
+
+
+  this->Bounds[0] = 0.0;
+  this->Bounds[1] = 1.0;
+  this->Bounds[2] = 0.0;
+  this->Bounds[3] = 1.0;
 
   this->NumberOfControlPoints[0] = 0;
   this->NumberOfControlPoints[1] = 0;
@@ -199,10 +207,10 @@ void vtkBezierSurfaceSource::ResetControlPoints()
   // 0.1 units along both m and n.
   int m = this->NumberOfControlPoints[0];
   int n = this->NumberOfControlPoints[1];
-  double distx = 1.0 / (m-1);
-  double disty = 1.0 / (n-1);
-  double minx = -0.5;
-  double miny = -0.5;
+  double distx = (this->Bounds[1] - this->Bounds[0]) /(double) (m-1);
+  double disty = (this->Bounds[3] - this->Bounds[2]) /(double) (n-1);
+  double minx = this->Bounds[0];
+  double miny = this->Bounds[2];
   int index = 0;
   for(int i=0; i<m; i++)
     {
@@ -230,6 +238,27 @@ void vtkBezierSurfaceSource::SetDimensions(int x, int y)
   this->Dimensions[1] = y;
 
   this->Modified();
+}
+
+void vtkBezierSurfaceSource::SetBounds(double xmin,
+                                       double xmax,
+                                       double ymin,
+                                       double ymax)
+{
+  this->Bounds[0] = xmin;
+  this->Bounds[1] = xmax;
+  this->Bounds[2] = ymin;
+  this->Bounds[3] = ymax;
+
+  this->ResetControlPoints();
+}
+
+void vtkBezierSurfaceSource::GetBounds(double bounds[3])
+{
+  bounds[0] = this->Bounds[0];
+  bounds[1] = this->Bounds[1];
+  bounds[2] = this->Bounds[2];
+  bounds[3] = this->Bounds[3];
 }
 
 int vtkBezierSurfaceSource::RequestData(
@@ -263,7 +292,7 @@ void vtkBezierSurfaceSource::UpdateControlPointsPolyData(vtkPolyData* pd)
     }
 
   // Create points array (geometry)
-  vtkSmartPointer<vtkPoints> points = 
+  vtkSmartPointer<vtkPoints> points =
       vtkSmartPointer<vtkPoints>::New();
 
   int nrPoints = this->NumberOfControlPoints[0]*this->NumberOfControlPoints[1];
@@ -280,10 +309,10 @@ void vtkBezierSurfaceSource::UpdateControlPointsPolyData(vtkPolyData* pd)
   // Create quads-segment array (topology)
   int grid_x = this->NumberOfControlPoints[0];
   int grid_y = this->NumberOfControlPoints[1];
-  
-  vtkSmartPointer<vtkCellArray> cells = 
+
+  vtkSmartPointer<vtkCellArray> cells =
       vtkSmartPointer<vtkCellArray>::New();
-  
+
   for(int i=0; i<grid_x-1; i++)
     {
       for(int j=0; j<grid_y-1; j++)
@@ -322,7 +351,16 @@ Credits to Paul Bourke for explaining Bezier surfaces so well.
 */
 // Methods used while computing the bezier surface
 double BezierBlend(int k, double mu, int n);
-void EvalBezierSurface(const double* controlPoints, int m, int n, int dimx, int dimy, vtkPoints* surfacePoints);
+void EvalBezierSurface(const double* controlPoints,
+                       int m,
+                       int n,
+                       int dimx,
+                       int dimy,
+                       double xmin,
+                       double xmax,
+                       double ymin,
+                       double ymax,
+                       vtkPoints* surfacePoints);
 
 void vtkBezierSurfaceSource::UpdateBezierSurfacePolyData(vtkPolyData* pd)
 {
@@ -336,15 +374,15 @@ void vtkBezierSurfaceSource::UpdateBezierSurfacePolyData(vtkPolyData* pd)
   int grid_x = Dimensions[0];
   int grid_y = Dimensions[1];
 
-  vtkSmartPointer<vtkPoints> points = 
+  vtkSmartPointer<vtkPoints> points =
       vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkDoubleArray> tcoords = 
+  vtkSmartPointer<vtkDoubleArray> tcoords =
       vtkSmartPointer<vtkDoubleArray>::New();
-  
+
   points->SetNumberOfPoints(grid_x*grid_y);
   tcoords->SetNumberOfComponents(2);
   tcoords->SetNumberOfTuples(grid_x*grid_y);
-  
+
   for(int i=0; i<grid_x; i++)
     {
     for(int j=0; j<grid_y; j++)
@@ -363,16 +401,21 @@ void vtkBezierSurfaceSource::UpdateBezierSurfacePolyData(vtkPolyData* pd)
   int n = this->NumberOfControlPoints[1];
   int dimx = this->Dimensions[0];
   int dimy = this->Dimensions[1];
-  EvalBezierSurface(this->ControlPoints, m, n, dimx, dimy, points);
+  EvalBezierSurface(this->ControlPoints,
+                    m, n,
+                    dimx, dimy,
+                    this->Bounds[0], this->Bounds[1],
+                    this->Bounds[2], this->Bounds[3],
+                    points);
 
   // Set the points into the output polydata.
   pd->SetPoints(points);
 
   pd->GetPointData()->SetTCoords(tcoords);
 
-  vtkSmartPointer<vtkCellArray> cells = 
+  vtkSmartPointer<vtkCellArray> cells =
       vtkSmartPointer<vtkCellArray>::New();
-  
+
   for(int i=0; i<grid_x-1; i++)
     {
     for(int j=0; j<grid_y-1; j++)
@@ -398,10 +441,11 @@ void vtkBezierSurfaceSource::UpdateBezierSurfacePolyData(vtkPolyData* pd)
 // surface code above. It is written for clarity, not efficiency.
 // Normally, if the number of control points is constant, the blending
 // function would be calculated once for each desired value of mu.
-double BezierBlend(int k, double mu, int n)
+double BezierBlend(int k, double mu, int n, double p0, double p1)
 {
   int nn, kn, nkn;
   double blend=1;
+  double c = p1-p0;
 
   nn = n;
   kn = k;
@@ -425,33 +469,41 @@ double BezierBlend(int k, double mu, int n)
 
   if (k > 0)
     {
-    blend *= pow(mu,(double)k);
+    blend *= pow((mu-p0)/c,(double)k);
     }
 
   if (n-k > 0)
     {
-    blend *= pow(1-mu,(double)(n-k));
+    blend *= pow((p1-mu)/c,(double)(n-k));
     }
 
   return blend;
 }
 
 // Evaluates a bezier surface.
-void EvalBezierSurface(const double* controlPoints, int m, int n, int dimx, int dimy, vtkPoints* surfacePoints)
+void EvalBezierSurface(const double* controlPoints,
+                       int m,
+                       int n,
+                       int dimx,
+                       int dimy,
+                       double xmin,
+                       double xmax,
+                       double ymin,
+                       double ymax,
+                       vtkPoints* surfacePoints)
 {
   int i, j, ki, kj;
   double mui, muj, bi, bj;
-
   int ptIndex = 0;
   int ctrlPtIndex = 0;
   double pt[3];
 
   for(i=0; i<dimx; i++)
     {
-    mui = i / (double)(dimx-1);
+    mui = xmin + (xmax-xmin)* i / (double)(dimx-1);
     for(j=0; j<dimy; j++)
       {
-        muj = j / (double)(dimy-1);
+      muj = xmin + (ymax-ymin)* j /(double)(dimy-1);
 
         // Get the surface point and initialize it.
         surfacePoints->GetPoint(ptIndex, pt);
@@ -462,11 +514,11 @@ void EvalBezierSurface(const double* controlPoints, int m, int n, int dimx, int 
         ctrlPtIndex = 0;
         for (ki=0; ki<m; ki++)
           {
-            bi = BezierBlend(ki,mui,m-1);
+          bi = BezierBlend(ki,mui,m-1,xmin,xmax);
 
             for (kj=0; kj<n; kj++)
               {
-                bj = BezierBlend(kj,muj,n-1);
+              bj = BezierBlend(kj,muj,n-1,ymin,ymax);
 
                 const double* ctrlPt = controlPoints + (ctrlPtIndex*3);
                 ++ctrlPtIndex;
