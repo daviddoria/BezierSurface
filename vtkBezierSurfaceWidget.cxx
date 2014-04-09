@@ -17,9 +17,12 @@
 ****************************************************************************/
 
 /**
-Authors:
-    Prashanth N Udupa (prashanth@vcreatelogic.com)
-    Brian Gee Chacko (brian.chacko@vcreatelogic.com)
+   Original Authors:
+   Prashanth N Udupa (prashanth@vcreatelogic.com)
+   Brian Gee Chacko (brian.chacko@vcreatelogic.com)
+
+   Contributors:
+   Rafael Palomar (rafaelpalomaravalos@gmail.com)
 */
 
 #include "vtkBezierSurfaceWidget.h"
@@ -422,7 +425,7 @@ void vtkBezierSurfaceWidget::DestroyHandles()
 void vtkBezierSurfaceWidget::SizeHandles()
 {
   //double radius = this->vtk3DWidget::SizeHandles(1.5);
-  double radius = 0.5;
+  double radius = 0.05;
   for(uint i=0; i<this->HandleInfoList.size(); i++)
     {
     HandleInfo* info = this->HandleInfoList[i];

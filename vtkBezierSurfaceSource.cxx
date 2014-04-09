@@ -159,7 +159,7 @@ void vtkBezierSurfaceSource::SetControlPoint(int m, int n, double pt[3])
     }
 
   int index = n + m*this->NumberOfControlPoints[0];
-  double cpt[4];
+  double* cpt = this->ControlPoints + (index*3);
   cpt[0] = pt[0];
   cpt[1] = pt[1];
   cpt[2] = pt[2];
