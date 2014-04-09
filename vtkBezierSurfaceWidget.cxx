@@ -422,7 +422,7 @@ void vtkBezierSurfaceWidget::DestroyHandles()
 void vtkBezierSurfaceWidget::SizeHandles()
 {
   //double radius = this->vtk3DWidget::SizeHandles(1.5);
-  double radius = 0.05;
+  double radius = 0.5;
   for(uint i=0; i<this->HandleInfoList.size(); i++)
     {
     HandleInfo* info = this->HandleInfoList[i];
@@ -448,7 +448,8 @@ void vtkBezierSurfaceWidget::ConstructHandles()
     {
       for(int j=0; j<vec[1]; j++)
         {
-        double* pt = this->Source->GetControlPoint(i, j);
+        double pt[3];
+        this->Source->GetControlPoint(i, j, pt);
 
         HandleInfo* info = new HandleInfo;
         info->Init();

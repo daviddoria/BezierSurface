@@ -42,6 +42,8 @@ Credits:
 #include <vtkExecutive.h>
 #include <vtkOutputWindow.h>
 #include <vtkSmartPointer.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 
 #include <cmath>
 
@@ -61,6 +63,9 @@ vtkBezierSurfaceSource::vtkBezierSurfaceSource()
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(2);
 
+  this->Transform = vtkTransform::New();
+  this->Transform->Identity();
+
   vtkPolyData *output2 = vtkPolyData::New();
   this->GetExecutive()->SetOutputData(1, output2);
   output2->Delete();
@@ -71,6 +76,11 @@ vtkBezierSurfaceSource::~vtkBezierSurfaceSource()
   if(this->ControlPoints)
     {
     delete [] this->ControlPoints;
+    }
+
+  if(this->Transform)
+    {
+    this->Transform->Delete();
     }
 }
 
@@ -149,10 +159,17 @@ void vtkBezierSurfaceSource::SetControlPoint(int m, int n, double pt[3])
     }
 
   int index = n + m*this->NumberOfControlPoints[0];
-  double* cpt = this->ControlPoints + (index*3);
+  double cpt[4];
   cpt[0] = pt[0];
   cpt[1] = pt[1];
   cpt[2] = pt[2];
+  cpt[3] = 1.0;
+
+  this->InverseTransform->MultiplyPoint(cpt,cpt);
+
+  this->ControlPoints[index*3]=cpt[0];
+  this->ControlPoints[index*3+1]=cpt[1];
+  this->ControlPoints[index*3+2]=cpt[2];
 
   this->Modified();
 }
@@ -170,28 +187,34 @@ void vtkBezierSurfaceSource::GetControlPoint(int m, int n, double pt[3])
     }
 
   int index = n + m*this->NumberOfControlPoints[0];
-  double* cpt = this->ControlPoints + (index*3);
+  double cpt[4];
+  cpt[0] = this->ControlPoints[index*3];
+  cpt[1] = this->ControlPoints[index*3+1];
+  cpt[2] = this->ControlPoints[index*3+2];
+  cpt[3] = 1.0;
+
+  this->Transform->MultiplyPoint(cpt,cpt);
   pt[0] = cpt[0];
   pt[1] = cpt[1];
   pt[2] = cpt[2];
 }
 
-double* vtkBezierSurfaceSource::GetControlPoint(int m, int n)
-{
-  if(m < 0 || m >= this->NumberOfControlPoints[0])
-    {
-    return 0;
-    }
+// double* vtkBezierSurfaceSource::GetControlPoint(int m, int n)
+// {
+//   if(m < 0 || m >= this->NumberOfControlPoints[0])
+//     {
+//     return 0;
+//     }
 
-  if(n < 0 || n >= this->NumberOfControlPoints[1])
-    {
-    return 0;
-    }
+//   if(n < 0 || n >= this->NumberOfControlPoints[1])
+//     {
+//     return 0;
+//     }
 
-  int index = n + m*this->NumberOfControlPoints[0];
-  double* cpt = this->ControlPoints + (index*3);
-  return cpt;
-}
+//   int index = n + m*this->NumberOfControlPoints[0];
+//   double* cpt = this->ControlPoints + (index*3);
+//   return cpt;
+// }
 
 void vtkBezierSurfaceSource::ResetControlPoints()
 {
@@ -232,11 +255,21 @@ void vtkBezierSurfaceSource::SetDimensions(int x, int y)
   this->Modified();
 }
 
+void vtkBezierSurfaceSource::SetTransform(vtkTransform *transform)
+{
+  if(transform)
+    {
+    this->Transform->DeepCopy(transform);
+    this->InverseTransform = vtkTransform::SafeDownCast(this->Transform->GetInverse());
+    }
+
+  this->Modified();
+}
+
 int vtkBezierSurfaceSource::RequestData(
             vtkInformation *vtkNotUsed(request),
             vtkInformationVector **vtkNotUsed(inputVector),
-            vtkInformationVector *outputVector
-        )
+            vtkInformationVector *outputVector)
 {
   vtkInformation *cpOutInfo = outputVector->GetInformationObject(1);
   if(cpOutInfo)
@@ -263,7 +296,7 @@ void vtkBezierSurfaceSource::UpdateControlPointsPolyData(vtkPolyData* pd)
     }
 
   // Create points array (geometry)
-  vtkSmartPointer<vtkPoints> points = 
+  vtkSmartPointer<vtkPoints> points =
       vtkSmartPointer<vtkPoints>::New();
 
   int nrPoints = this->NumberOfControlPoints[0]*this->NumberOfControlPoints[1];
@@ -271,7 +304,12 @@ void vtkBezierSurfaceSource::UpdateControlPointsPolyData(vtkPolyData* pd)
 
   for(int i=0; i<nrPoints; i++)
     {
-    double* pt = this->ControlPoints + (i*3);
+    double pt[4];
+    pt[0] = this->ControlPoints[i*3];
+    pt[1] = this->ControlPoints[i*3+1];
+    pt[2] = this->ControlPoints[i*3+2];
+    pt[3] = 1.0;
+    this->Transform->MultiplyPoint(pt,pt);
     points->SetPoint(i, pt);
     }
 
@@ -280,10 +318,10 @@ void vtkBezierSurfaceSource::UpdateControlPointsPolyData(vtkPolyData* pd)
   // Create quads-segment array (topology)
   int grid_x = this->NumberOfControlPoints[0];
   int grid_y = this->NumberOfControlPoints[1];
-  
-  vtkSmartPointer<vtkCellArray> cells = 
+
+  vtkSmartPointer<vtkCellArray> cells =
       vtkSmartPointer<vtkCellArray>::New();
-  
+
   for(int i=0; i<grid_x-1; i++)
     {
       for(int j=0; j<grid_y-1; j++)
@@ -336,15 +374,15 @@ void vtkBezierSurfaceSource::UpdateBezierSurfacePolyData(vtkPolyData* pd)
   int grid_x = Dimensions[0];
   int grid_y = Dimensions[1];
 
-  vtkSmartPointer<vtkPoints> points = 
+  vtkSmartPointer<vtkPoints> points =
       vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkDoubleArray> tcoords = 
+  vtkSmartPointer<vtkDoubleArray> tcoords =
       vtkSmartPointer<vtkDoubleArray>::New();
-  
+
   points->SetNumberOfPoints(grid_x*grid_y);
   tcoords->SetNumberOfComponents(2);
   tcoords->SetNumberOfTuples(grid_x*grid_y);
-  
+
   for(int i=0; i<grid_x; i++)
     {
     for(int j=0; j<grid_y; j++)
@@ -365,14 +403,26 @@ void vtkBezierSurfaceSource::UpdateBezierSurfacePolyData(vtkPolyData* pd)
   int dimy = this->Dimensions[1];
   EvalBezierSurface(this->ControlPoints, m, n, dimx, dimy, points);
 
+  for(int i=0; i<points->GetNumberOfPoints(); i++)
+    {
+    double *point = points->GetPoint(i);
+    double pt[4];
+    pt[0] = point[0];
+    pt[1] = point[1];
+    pt[2] = point[2];
+    pt[3] = 1.0;
+    this->Transform->MultiplyPoint(pt,pt);
+    points->SetPoint(i, pt);
+    }
+
   // Set the points into the output polydata.
   pd->SetPoints(points);
 
   pd->GetPointData()->SetTCoords(tcoords);
 
-  vtkSmartPointer<vtkCellArray> cells = 
+  vtkSmartPointer<vtkCellArray> cells =
       vtkSmartPointer<vtkCellArray>::New();
-  
+
   for(int i=0; i<grid_x-1; i++)
     {
     for(int j=0; j<grid_y-1; j++)
