@@ -35,6 +35,8 @@ Credits:
 #include "vtkPolyDataAlgorithm.h"
 
 class vtkImageData;
+class vtkTransform;
+
 class vtkBezierSurfaceSource : public vtkPolyDataAlgorithm
 {
 public:
@@ -50,11 +52,14 @@ public:
 
   void SetControlPoint(int m, int n, double pt[3]);
   void GetControlPoint(int m, int n, double pt[3]);
-  double* GetControlPoint(int m, int n);
+  //double* GetControlPoint(int m, int n);
   void ResetControlPoints();
 
   void SetDimensions(int x, int y);
   int* GetDimensions() { return this->Dimensions; }
+
+  void SetTransform(vtkTransform *transform);
+  vtkTransform* GetTransform() { return this->Transform; }
 
 protected:
   vtkBezierSurfaceSource();
@@ -72,6 +77,8 @@ private:
   int NumberOfControlPoints[2];
   int Dimensions[2];
   double* ControlPoints;
+  vtkTransform *Transform;
+  vtkTransform *InverseTransform;
 };
 
 #endif

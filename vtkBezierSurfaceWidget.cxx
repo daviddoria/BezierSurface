@@ -17,9 +17,12 @@
 ****************************************************************************/
 
 /**
-Authors:
-    Prashanth N Udupa (prashanth@vcreatelogic.com)
-    Brian Gee Chacko (brian.chacko@vcreatelogic.com)
+   Original Authors:
+   Prashanth N Udupa (prashanth@vcreatelogic.com)
+   Brian Gee Chacko (brian.chacko@vcreatelogic.com)
+
+   Contributors:
+   Rafael Palomar (rafaelpalomaravalos@gmail.com)
 */
 
 #include "vtkBezierSurfaceWidget.h"
@@ -160,17 +163,20 @@ vtkBezierSurfaceWidget::~vtkBezierSurfaceWidget()
     if(this->Property)
       {
       this->Property->UnRegister(this);
+      this->Property->Delete();
       }
     if(this->Source)
       {
-      this->Property->UnRegister(this);
+      this->Source->UnRegister(this);
       }
     if(this->Picker)
       {
       this->Picker->UnRegister(this);
+      this->Picker->Delete();
       }
     if(this->CPGridActor)
       {
+      this->GetRenderer()->RemoveViewProp(this->CPGridActor);
       this->CPGridActor->Delete();
       }
 }
@@ -445,7 +451,8 @@ void vtkBezierSurfaceWidget::ConstructHandles()
     {
       for(int j=0; j<vec[1]; j++)
         {
-        double* pt = this->Source->GetControlPoint(i, j);
+        double pt[3];
+        this->Source->GetControlPoint(i, j, pt);
 
         HandleInfo* info = new HandleInfo;
         info->Init();

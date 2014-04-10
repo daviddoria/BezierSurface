@@ -11,3 +11,5 @@ TARGET_LINK_LIBRARIES(BezierSource ${VTK_LIBRARIES})
 ADD_EXECUTABLE(BezierWidget Example_Widget.cxx vtkBezierSurfaceWidget.cxx vtkBezierSurfaceSource.cxx)
 TARGET_LINK_LIBRARIES(BezierWidget ${VTK_LIBRARIES})
 
+ADD_EXECUTABLE(BezierSourceWidget Example_Source_Widget.cxx vtkBezierSurfaceWidget.cxx vtkBezierSurfaceSource.cxx)
+TARGET_LINK_LIBRARIES(BezierSourceWidget vtkHybrid vtkWidgets)
