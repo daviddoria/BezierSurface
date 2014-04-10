@@ -74,7 +74,7 @@ struct HandleInfo
     this->Source->SetThetaResolution(16);
     this->Source->SetPhiResolution(16);
 
-    this->Mapper->SetInput(this->Source->GetOutput());
+    this->Mapper->SetInputData(this->Source->GetOutput());
     this->Actor->SetMapper(this->Mapper);
   }
 
@@ -204,7 +204,7 @@ void vtkBezierSurfaceWidget::SetSource(vtkBezierSurfaceSource* source)
 
     this->CPGridMapper = vtkPolyDataMapper::New();
     this->CPGridActor = vtkActor::New();
-    this->CPGridMapper->SetInput( this->Source->GetControlPointsOutput() );
+    this->CPGridMapper->SetInputData( this->Source->GetControlPointsOutput() );
     this->CPGridActor->SetMapper(this->CPGridMapper);
     this->CPGridMapper->Delete();
     }
