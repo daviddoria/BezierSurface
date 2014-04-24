@@ -17,9 +17,13 @@
 ****************************************************************************/
 
 /**
-Authors:
+Original Authors:
     Prashanth N Udupa (prashanth@vcreatelogic.com)
     Brian Gee Chacko (brian.chacko@vcreatelogic.com)
+
+Contributors:
+    Rafael Palomar (rafaelpalomaravalos@gmail.com)
+
 */
 
 #ifndef VTK_BEZIER_SURFACE_WIDGET_H

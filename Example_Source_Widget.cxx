@@ -1,3 +1,13 @@
+// Bezier surface and widget example
+/*
+  In this example, a Bezier surface initialized to an arbitrary plane
+  is transformed (scaled) and then displayed. A widget consisting of
+  a convex hull containing the surface allows the manipulation of the
+  control points. These poins can be moved to deform the surface.
+  Note that initialization of points and/or transformation it is not
+  required.
+ */
+
 #include <vtkSmartPointer.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>

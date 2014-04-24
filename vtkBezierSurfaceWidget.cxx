@@ -77,7 +77,11 @@ struct HandleInfo
     this->Source->SetThetaResolution(16);
     this->Source->SetPhiResolution(16);
 
+#if ITK_MAJOR_VERSION <= 5
     this->Mapper->SetInput(this->Source->GetOutput());
+#else
+    this->Mapper->SetInputData(this->Source->GetOutput());
+#endif
     this->Actor->SetMapper(this->Mapper);
   }
 
