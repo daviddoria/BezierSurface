@@ -101,9 +101,9 @@ struct HandleInfo
       }
   }
 
-  void SetPosition(double* pt) 
-  { 
-    SetPosition(pt[0], pt[1], pt[2]); 
+  void SetPosition(double* pt)
+  {
+    SetPosition(pt[0], pt[1], pt[2]);
   }
 
   double* GetPosition()
@@ -146,6 +146,7 @@ struct HandleInfo
 
 vtkBezierSurfaceWidget::vtkBezierSurfaceWidget()
 {
+  this->HandleSize = 0.0;
   this->Source = 0;
   this->Property = vtkProperty::New();
   this->Property->Register(this);
@@ -277,7 +278,7 @@ void vtkBezierSurfaceWidget::SetInteractor(vtkRenderWindowInteractor* iren)
   else
     {
     SetEnabled(0);
-    }  
+    }
 }
 
 void vtkBezierSurfaceWidget::SetProp3D(vtkProp3D*)
@@ -331,7 +332,7 @@ void vtkBezierSurfaceWidget::SetEnabled(int enabled)
         {
         this->HandleInfoList[i]->SetVisibility(1);
         }
-        
+
       if(this->CPGridActor)
         {
         vtkRenderer* ren = this->GetRenderer();
@@ -384,9 +385,10 @@ void vtkBezierSurfaceWidget::SetPlaceFactor(double)
   vtkOutputWindow::GetInstance()->DisplayWarningText("SetPlaceFactor() is disabled");
 }
 
-void vtkBezierSurfaceWidget::SetHandleSize(double)
+void vtkBezierSurfaceWidget::SetHandleSize(double radius)
 {
-  vtkOutputWindow::GetInstance()->DisplayWarningText("SetHandleSize() is disabled");
+  //vtkOutputWindow::GetInstance()->DisplayWarningText("SetHandleSize() is disabled");
+  this->HandleSize = radius;
 }
 
 vtkRenderer* vtkBezierSurfaceWidget::GetRenderer()
@@ -429,11 +431,11 @@ void vtkBezierSurfaceWidget::DestroyHandles()
 void vtkBezierSurfaceWidget::SizeHandles()
 {
   //double radius = this->vtk3DWidget::SizeHandles(1.5);
-  double radius = 0.05;
+  //double radius = 0.05;
   for(uint i=0; i<this->HandleInfoList.size(); i++)
     {
     HandleInfo* info = this->HandleInfoList[i];
-    info->SetRadius(radius);
+    info->SetRadius(this->HandleSize);
     }
 }
 

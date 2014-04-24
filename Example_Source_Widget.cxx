@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
     vtkSmartPointer<vtkBezierSurfaceWidget>::New();
   widget->SetInteractor(renderWindowInteractor);
   widget->SetSource(bezierSource);
+  widget->SetHandleSize(0.1);
   widget->On();
 
   vtkSmartPointer<vtkPolyDataMapper> mapper =

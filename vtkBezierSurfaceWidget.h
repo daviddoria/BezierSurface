@@ -64,6 +64,7 @@ public:
   void PlaceWidget(double bounds[6]);
   void SetPlaceFactor(double val);
   void SetHandleSize(double size);
+  double GetHandleSize() { return this->HandleSize; }
 
 protected:
   vtkBezierSurfaceWidget();
@@ -91,6 +92,7 @@ private:
   vtkPropPicker* Picker;
   vtkPolyDataMapper* CPGridMapper;
   vtkActor* CPGridActor;
+  double HandleSize;
 
 private:
   vtkBezierSurfaceWidget(const vtkBezierSurfaceWidget&);  //Not implemented
