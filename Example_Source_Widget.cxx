@@ -15,47 +15,76 @@
 #include "vtkBezierSurfaceWidget.h"
 #include "vtkBezierSurfaceSource.h"
 
+const int controlPointsX=4;
+const int controlPointsY=4;
+
 int main(int argc, char *argv[])
 {
   //Create a renderer, render window, and interactor
-  vtkSmartPointer<vtkRenderer> renderer = 
+  vtkSmartPointer<vtkRenderer> renderer =
     vtkSmartPointer<vtkRenderer>::New();
-  vtkSmartPointer<vtkRenderWindow> renderWindow = 
+  vtkSmartPointer<vtkRenderWindow> renderWindow =
     vtkSmartPointer<vtkRenderWindow>::New();
   renderWindow->AddRenderer(renderer);
-  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = 
+  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
     vtkSmartPointer<vtkRenderWindowInteractor>::New();
   renderWindowInteractor->SetRenderWindow(renderWindow);
 
+
+  //Create an arbitrary plane that we can use
+  //to initialize the control points for the Bezier surface
+  vtkSmartPointer<vtkPlaneSource> planeSource =
+    vtkSmartPointer<vtkPlaneSource>::New();
+  planeSource->SetOrigin(0,0,0);
+  planeSource->SetPoint2(1,0,0);
+  planeSource->SetPoint1(0,0,1);
+  planeSource->SetXResolution(controlPointsX-1);
+  planeSource->SetYResolution(controlPointsY-1);
+  planeSource->Update();
+
+  //Create a transformation to be applied to the Bezier surface
   vtkSmartPointer<vtkTransform> transform =
     vtkSmartPointer<vtkTransform>::New();
-  transform->Scale(10,5,10);
+  transform->Scale(2,1,1);
 
+  //Create the Bezier surface that matches the plane created above
+  //and scaled by the transformation
   vtkSmartPointer<vtkBezierSurfaceSource> bezierSource =
     vtkSmartPointer<vtkBezierSurfaceSource>::New();
+  bezierSource->SetNumberOfControlPoints(controlPointsX,controlPointsY);
+
+  vtkPolyData* planePoly = planeSource->GetOutput();
+
+  for(int i=0; i<controlPointsX; i++)
+    {
+      for(int j=0; j<controlPointsY; j++)
+        {
+          bezierSource->SetControlPoint(i,j,planePoly->GetPoint(i*controlPointsY+j));
+        }
+    }
   bezierSource->SetTransform(transform);
   bezierSource->Update();
 
-  vtkSmartPointer<vtkBezierSurfaceWidget> widget = 
+  vtkSmartPointer<vtkBezierSurfaceWidget> widget =
     vtkSmartPointer<vtkBezierSurfaceWidget>::New();
   widget->SetInteractor(renderWindowInteractor);
   widget->SetSource(bezierSource);
   widget->On();
 
-  vtkSmartPointer<vtkPolyDataMapper> mapper = 
+  vtkSmartPointer<vtkPolyDataMapper> mapper =
     vtkSmartPointer<vtkPolyDataMapper>::New();
   mapper->SetInputConnection(bezierSource->GetOutputPort());
-  
-  vtkSmartPointer<vtkActor> actor = 
+
+  vtkSmartPointer<vtkActor> actor =
     vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);
 
   renderer->AddActor(actor);
   renderer->SetBackground(0.3,0.3,0.3); // Background color white
-  
+
   //Render and interact
   renderWindow->Render();
   renderWindowInteractor->Start();
-  
+
   return EXIT_SUCCESS;
 }

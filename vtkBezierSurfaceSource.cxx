@@ -107,9 +107,15 @@ void vtkBezierSurfaceSource::PrintSelf(ostream& os, vtkIndent indent)
     {
     for(int j=0; j<this->NumberOfControlPoints[1]; j++)
       {
-      double* pt = this->ControlPoints + (index*3);
-      os << "Control Point[" << i << ", " << j << "] = " << pt[0] << ", " << pt[1] << ", " << pt[2] << "\n";
-      ++index;
+        double cpt[4];
+        cpt[0] = this->ControlPoints[index*3];
+        cpt[1] = this->ControlPoints[index*3+1];
+        cpt[2] = this->ControlPoints[index*3+2];
+        cpt[3] = 1.0;
+
+        this->Transform->MultiplyPoint(cpt,cpt);
+        os << "Control Point[" << i << ", " << j << "] = " << cpt[0] << ", " << cpt[1] << ", " << cpt[2] << "\n";
+        ++index;
       }
     os << "\n";
     }
