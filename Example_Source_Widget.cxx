@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
   actor->SetMapper(mapper);
 
   renderer->AddActor(actor);
-  renderer->SetBackground(1,1,1); // Background color white
+  renderer->SetBackground(0.3,0.3,0.3); // Background color white
   
   //Render and interact
   renderWindow->Render();

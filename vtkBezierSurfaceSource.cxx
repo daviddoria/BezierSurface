@@ -1,32 +1,35 @@
 /****************************************************************************
-**
-** Copyright (C) VCreate Logic Private Limited, Bangalore
-**
-** Use of this file is limited according to the terms specified by
-** VCreate Logic Private Limited, Bangalore. Details of those terms
-** are listed in licence.txt included as part of the distribution package
-** of this file. This file may not be distributed without including the
-** licence.txt file.
-**
-** Contact info@vcreatelogic.com if any conditions of this licensing are
-** not clear to you.
-**
-** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-**
-****************************************************************************/
+ **
+ ** Copyright (C) VCreate Logic Private Limited, Bangalore
+ **
+ ** Use of this file is limited according to the terms specified by
+ ** VCreate Logic Private Limited, Bangalore. Details of those terms
+ ** are listed in licence.txt included as part of the distribution package
+ ** of this file. This file may not be distributed without including the
+ ** licence.txt file.
+ **
+ ** Contact info@vcreatelogic.com if any conditions of this licensing are
+ ** not clear to you.
+ **
+ ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ **
+ ****************************************************************************/
 
 /**
-Authors:
-    Prashanth N Udupa (prashanth@vcreatelogic.com)
-    Paul Bourke (paul.bourke@gmail.com)
+   Original Authors:
+   Prashanth N Udupa (prashanth@vcreatelogic.com)
+   Paul Bourke (paul.bourke@gmail.com)
 
-Credits:
-    The bezier surface algorithm is based on the code and concepts presented in
-    this page: "B�zier Surface (in 3D)"
-    http://local.wasp.uwa.edu.au/~pbourke/geometry/bezier/index.html
+   Contributors:
+   Rafael Palomar (rafaelpalomaravalos@gmail.com)
 
-    Credits to Paul Bourke for explaining Bezier surfaces so well.
+   Credits:
+   The bezier surface algorithm is based on the code and concepts presented in
+   this page: "B�zier Surface (in 3D)"
+   http://local.wasp.uwa.edu.au/~pbourke/geometry/bezier/index.html
+
+   Credits to Paul Bourke for explaining Bezier surfaces so well.
 */
 
 #include "vtkBezierSurfaceSource.h"
@@ -66,6 +69,9 @@ vtkBezierSurfaceSource::vtkBezierSurfaceSource()
   this->Transform = vtkTransform::New();
   this->Transform->Identity();
 
+  this->InverseTransform = vtkTransform::New();
+  this->InverseTransform->Identity();
+
   vtkPolyData *output2 = vtkPolyData::New();
   this->GetExecutive()->SetOutputData(1, output2);
   output2->Delete();
@@ -81,6 +87,11 @@ vtkBezierSurfaceSource::~vtkBezierSurfaceSource()
   if(this->Transform)
     {
     this->Transform->Delete();
+    }
+
+  if(this->InverseTransform)
+    {
+    this->InverseTransform->Delete();
     }
 }
 
@@ -159,7 +170,7 @@ void vtkBezierSurfaceSource::SetControlPoint(int m, int n, double pt[3])
     }
 
   int index = n + m*this->NumberOfControlPoints[0];
-  double* cpt = this->ControlPoints + (index*3);
+  double cpt[4];
   cpt[0] = pt[0];
   cpt[1] = pt[1];
   cpt[2] = pt[2];
@@ -198,23 +209,6 @@ void vtkBezierSurfaceSource::GetControlPoint(int m, int n, double pt[3])
   pt[1] = cpt[1];
   pt[2] = cpt[2];
 }
-
-// double* vtkBezierSurfaceSource::GetControlPoint(int m, int n)
-// {
-//   if(m < 0 || m >= this->NumberOfControlPoints[0])
-//     {
-//     return 0;
-//     }
-
-//   if(n < 0 || n >= this->NumberOfControlPoints[1])
-//     {
-//     return 0;
-//     }
-
-//   int index = n + m*this->NumberOfControlPoints[0];
-//   double* cpt = this->ControlPoints + (index*3);
-//   return cpt;
-// }
 
 void vtkBezierSurfaceSource::ResetControlPoints()
 {
@@ -260,16 +254,17 @@ void vtkBezierSurfaceSource::SetTransform(vtkTransform *transform)
   if(transform)
     {
     this->Transform->DeepCopy(transform);
-    this->InverseTransform = vtkTransform::SafeDownCast(this->Transform->GetInverse());
+    this->InverseTransform->DeepCopy(transform);
+    this->InverseTransform->Inverse();
     }
 
   this->Modified();
 }
 
 int vtkBezierSurfaceSource::RequestData(
-            vtkInformation *vtkNotUsed(request),
-            vtkInformationVector **vtkNotUsed(inputVector),
-            vtkInformationVector *outputVector)
+  vtkInformation *vtkNotUsed(request),
+  vtkInformationVector **vtkNotUsed(inputVector),
+  vtkInformationVector *outputVector)
 {
   vtkInformation *cpOutInfo = outputVector->GetInformationObject(1);
   if(cpOutInfo)
@@ -297,7 +292,7 @@ void vtkBezierSurfaceSource::UpdateControlPointsPolyData(vtkPolyData* pd)
 
   // Create points array (geometry)
   vtkSmartPointer<vtkPoints> points =
-      vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkPoints>::New();
 
   int nrPoints = this->NumberOfControlPoints[0]*this->NumberOfControlPoints[1];
   points->SetNumberOfPoints(nrPoints);
@@ -309,8 +304,9 @@ void vtkBezierSurfaceSource::UpdateControlPointsPolyData(vtkPolyData* pd)
     pt[1] = this->ControlPoints[i*3+1];
     pt[2] = this->ControlPoints[i*3+2];
     pt[3] = 1.0;
+
     this->Transform->MultiplyPoint(pt,pt);
-    points->SetPoint(i, pt);
+    points->SetPoint(i, pt[0], pt[1], pt[2]);
     }
 
   pd->SetPoints(points);
@@ -320,43 +316,43 @@ void vtkBezierSurfaceSource::UpdateControlPointsPolyData(vtkPolyData* pd)
   int grid_y = this->NumberOfControlPoints[1];
 
   vtkSmartPointer<vtkCellArray> cells =
-      vtkSmartPointer<vtkCellArray>::New();
+    vtkSmartPointer<vtkCellArray>::New();
 
   for(int i=0; i<grid_x-1; i++)
     {
-      for(int j=0; j<grid_y-1; j++)
-        {
-        int base = j*grid_x + i;
-        int a = base;
-        int b = base+1;
-        int c = base+grid_x+1;
-        int d = base+grid_x;
+    for(int j=0; j<grid_y-1; j++)
+      {
+      int base = j*grid_x + i;
+      int a = base;
+      int b = base+1;
+      int c = base+grid_x+1;
+      int d = base+grid_x;
 
-        vtkIdType ls[2];
+      vtkIdType ls[2];
 
-        ls[0] = a; ls[1] = b;
-        cells->InsertNextCell(2, ls);
+      ls[0] = a; ls[1] = b;
+      cells->InsertNextCell(2, ls);
 
-        ls[0] = b; ls[1] = c;
-        cells->InsertNextCell(2, ls);
+      ls[0] = b; ls[1] = c;
+      cells->InsertNextCell(2, ls);
 
-        ls[0] = c; ls[1] = d;
-        cells->InsertNextCell(2, ls);
+      ls[0] = c; ls[1] = d;
+      cells->InsertNextCell(2, ls);
 
-        ls[0] = d; ls[1] = a;
-        cells->InsertNextCell(2, ls);
-        }
+      ls[0] = d; ls[1] = a;
+      cells->InsertNextCell(2, ls);
+      }
     }
   pd->SetLines(cells);
 
 }
 
 /*
-The bezier surface algorithm is based on the code and concepts presented in
-this page: "B�zier Surface (in 3D)"
-http://local.wasp.uwa.edu.au/~pbourke/geometry/bezier/index.html
+  The bezier surface algorithm is based on the code and concepts presented in
+  this page: "B�zier Surface (in 3D)"
+  http://local.wasp.uwa.edu.au/~pbourke/geometry/bezier/index.html
 
-Credits to Paul Bourke for explaining Bezier surfaces so well.
+  Credits to Paul Bourke for explaining Bezier surfaces so well.
 */
 // Methods used while computing the bezier surface
 double BezierBlend(int k, double mu, int n);
@@ -375,9 +371,9 @@ void vtkBezierSurfaceSource::UpdateBezierSurfacePolyData(vtkPolyData* pd)
   int grid_y = Dimensions[1];
 
   vtkSmartPointer<vtkPoints> points =
-      vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkDoubleArray> tcoords =
-      vtkSmartPointer<vtkDoubleArray>::New();
+    vtkSmartPointer<vtkDoubleArray>::New();
 
   points->SetNumberOfPoints(grid_x*grid_y);
   tcoords->SetNumberOfComponents(2);
@@ -411,8 +407,9 @@ void vtkBezierSurfaceSource::UpdateBezierSurfacePolyData(vtkPolyData* pd)
     pt[1] = point[1];
     pt[2] = point[2];
     pt[3] = 1.0;
+
     this->Transform->MultiplyPoint(pt,pt);
-    points->SetPoint(i, pt);
+    points->SetPoint(i, pt[0],pt[1],pt[2]);
     }
 
   // Set the points into the output polydata.
@@ -421,7 +418,7 @@ void vtkBezierSurfaceSource::UpdateBezierSurfacePolyData(vtkPolyData* pd)
   pd->GetPointData()->SetTCoords(tcoords);
 
   vtkSmartPointer<vtkCellArray> cells =
-      vtkSmartPointer<vtkCellArray>::New();
+    vtkSmartPointer<vtkCellArray>::New();
 
   for(int i=0; i<grid_x-1; i++)
     {
@@ -463,13 +460,13 @@ double BezierBlend(int k, double mu, int n)
     nn--;
     if (kn > 1)
       {
-        blend /= (double)kn;
-        kn--;
+      blend /= (double)kn;
+      kn--;
       }
     if (nkn > 1)
       {
-        blend /= (double)nkn;
-        nkn--;
+      blend /= (double)nkn;
+      nkn--;
       }
     }
 
@@ -501,34 +498,34 @@ void EvalBezierSurface(const double* controlPoints, int m, int n, int dimx, int 
     mui = i / (double)(dimx-1);
     for(j=0; j<dimy; j++)
       {
-        muj = j / (double)(dimy-1);
+      muj = j / (double)(dimy-1);
 
-        // Get the surface point and initialize it.
-        surfacePoints->GetPoint(ptIndex, pt);
-        pt[0] = pt[1] = pt[2] = 0;
+      // Get the surface point and initialize it.
+      surfacePoints->GetPoint(ptIndex, pt);
+      pt[0] = pt[1] = pt[2] = 0;
 
-        // Loop through all control points and compute its effect on the
-        // surface point
-        ctrlPtIndex = 0;
-        for (ki=0; ki<m; ki++)
+      // Loop through all control points and compute its effect on the
+      // surface point
+      ctrlPtIndex = 0;
+      for (ki=0; ki<m; ki++)
+        {
+        bi = BezierBlend(ki,mui,m-1);
+
+        for (kj=0; kj<n; kj++)
           {
-            bi = BezierBlend(ki,mui,m-1);
+          bj = BezierBlend(kj,muj,n-1);
 
-            for (kj=0; kj<n; kj++)
-              {
-                bj = BezierBlend(kj,muj,n-1);
+          const double* ctrlPt = controlPoints + (ctrlPtIndex*3);
+          ++ctrlPtIndex;
 
-                const double* ctrlPt = controlPoints + (ctrlPtIndex*3);
-                ++ctrlPtIndex;
-
-                pt[0] += (ctrlPt[0] * bi * bj);
-                pt[1] += (ctrlPt[1] * bi * bj);
-                pt[2] += (ctrlPt[2] * bi * bj);
-              }
+          pt[0] += (ctrlPt[0] * bi * bj);
+          pt[1] += (ctrlPt[1] * bi * bj);
+          pt[2] += (ctrlPt[2] * bi * bj);
           }
+        }
 
-        surfacePoints->SetPoint(ptIndex, pt);
-        ++ptIndex;
+      surfacePoints->SetPoint(ptIndex, pt);
+      ++ptIndex;
       }
     }
 }
