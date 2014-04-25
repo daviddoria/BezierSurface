@@ -17,9 +17,13 @@
 ****************************************************************************/
 
 /**
-Authors:
+Original Authors:
     Prashanth N Udupa (prashanth@vcreatelogic.com)
     Brian Gee Chacko (brian.chacko@vcreatelogic.com)
+
+Contributors:
+    Rafael Palomar (rafaelpalomaravalos@gmail.com)
+
 */
 
 #ifndef VTK_BEZIER_SURFACE_WIDGET_H
@@ -60,6 +64,7 @@ public:
   void PlaceWidget(double bounds[6]);
   void SetPlaceFactor(double val);
   void SetHandleSize(double size);
+  double GetHandleSize() { return this->HandleSize; }
 
 protected:
   vtkBezierSurfaceWidget();
@@ -87,6 +92,7 @@ private:
   vtkPropPicker* Picker;
   vtkPolyDataMapper* CPGridMapper;
   vtkActor* CPGridActor;
+  double HandleSize;
 
 private:
   vtkBezierSurfaceWidget(const vtkBezierSurfaceWidget&);  //Not implemented

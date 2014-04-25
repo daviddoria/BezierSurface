@@ -1,1 +1,20 @@
-Bezier surface source and widget for VTK 
+Bezier surface source and widget for VTK
+-----------------------------------------
+
+vtkBezierSurfaceSource allows the construction of 3D Bezier surfaces as polydata.
+By default the Bezier surface generated corresponds to a plane of 3x3 control points.
+It is possible to specify new control points and/or assign a transformation to the source.
+
+
+vtkBezierSurfaceWidget allows interactive modification of the 3D Bezier surface
+by modifying the associated control points. Notice vtkBezierSurfaceWidget requires
+the specification of a vtkBezierSurfaceSource.
+
+Examples:
+
+BezierSource (Example_Source.cxx): Creates the default Bezier surface (3x3 control points plane). It illustrates
+the use of vtkBezierSurfaceSource without any vtkBezierSourceWidget.
+
+BezierSourceWidget (Example_Source_Widget.cxx): Creates a transformed Bezier surface based on an arbitrary plane.
+It also creates the correspondent vtkBezierSurfaceWidget wich allows the interactive
+modification of the Bezier surface by moving the control points.

@@ -17,9 +17,12 @@
 ****************************************************************************/
 
 /**
-Authors:
+Original Authors:
     Prashanth N Udupa (prashanth@vcreatelogic.com)
     Paul Bourke (paul.bourke@gmail.com)
+
+Contributors:
+    Rafael Palomar (rafaelpalomaravalos@gmail.com)
 
 Credits:
     The bezier surface algorithm is based on the code and concepts presented in
