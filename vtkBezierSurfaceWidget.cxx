@@ -38,6 +38,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkCallbackCommand.h>
 #include <vtkPropPicker.h>
+#include <vtkVersion.h>
 
 typedef unsigned int uint;
 
@@ -77,7 +78,7 @@ struct HandleInfo
     this->Source->SetThetaResolution(16);
     this->Source->SetPhiResolution(16);
 
-#if ITK_MAJOR_VERSION <= 5
+#if VTK_MAJOR_VERSION <= 5
     this->Mapper->SetInput(this->Source->GetOutput());
 #else
     this->Mapper->SetInputData(this->Source->GetOutput());
