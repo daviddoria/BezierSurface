@@ -217,7 +217,11 @@ void vtkBezierSurfaceWidget::SetSource(vtkBezierSurfaceSource* source)
 
     this->CPGridMapper = vtkPolyDataMapper::New();
     this->CPGridActor = vtkActor::New();
+#if VTK_MAJOR_VERSION <= 5
+    this->CPGridMapper->SetInput( this->Source->GetControlPointsOutput() );
+#else
     this->CPGridMapper->SetInputData( this->Source->GetControlPointsOutput() );
+#endif
     this->CPGridActor->SetMapper(this->CPGridMapper);
     this->CPGridMapper->Delete();
     }
