@@ -345,6 +345,7 @@ void vtkBezierSurfaceWidget::SetEnabled(int enabled)
     if(!enabled)
       {
         // Disable handle visibility
+//        std::cout << "Disable handle visibility." << std::endl;
         for(uint i=0; i<this->HandleInfoList.size(); i++)
           {
           this->HandleInfoList[i]->SetVisibility(0);
@@ -378,7 +379,7 @@ void vtkBezierSurfaceWidget::SetEnabled(int enabled)
 
 void vtkBezierSurfaceWidget::PlaceWidget(double[6])
 {
-
+    // This is not implemented, but required by the vtk3DWidget interface
 }
 
 void vtkBezierSurfaceWidget::SetPlaceFactor(double)
@@ -391,7 +392,11 @@ void vtkBezierSurfaceWidget::SetHandleSize(const double radius)
   //vtkOutputWindow::GetInstance()->DisplayWarningText("SetHandleSize() is disabled");
   this->HandleSize = radius;
 
-  this->Interactor->Render();
+  if(this->Enabled && this->BezierSource)
+  {
+      ConstructHandles();
+      this->Interactor->Render();
+  }
 }
 
 vtkRenderer* vtkBezierSurfaceWidget::GetRenderer()

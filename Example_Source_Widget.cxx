@@ -28,9 +28,9 @@
 const int controlPointsX=4;
 const int controlPointsY=4;
 
-int main(int argc, char *argv[])
+int main(int, char *[])
 {
-  //Create a renderer, render window, and interactor
+  // Create a renderer, render window, and interactor
   vtkSmartPointer<vtkRenderer> renderer =
     vtkSmartPointer<vtkRenderer>::New();
   vtkSmartPointer<vtkRenderWindow> renderWindow =
@@ -41,8 +41,8 @@ int main(int argc, char *argv[])
   renderWindowInteractor->SetRenderWindow(renderWindow);
 
 
-  //Create an arbitrary plane that we can use
-  //to initialize the control points for the Bezier surface
+  // Create an arbitrary plane that we can use
+  // to initialize the control points for the Bezier surface
   vtkSmartPointer<vtkPlaneSource> planeSource =
     vtkSmartPointer<vtkPlaneSource>::New();
   planeSource->SetOrigin(0,0,0);
@@ -52,13 +52,13 @@ int main(int argc, char *argv[])
   planeSource->SetYResolution(controlPointsY-1);
   planeSource->Update();
 
-  //Create a transformation to be applied to the Bezier surface
+  // Create a transformation to be applied to the Bezier surface
   vtkSmartPointer<vtkTransform> transform =
     vtkSmartPointer<vtkTransform>::New();
   transform->Scale(2,1,1);
 
-  //Create the Bezier surface that matches the plane created above
-  //and scaled by the transformation
+  // Create the Bezier surface that matches the plane created above
+  // and scaled by the transformation
   vtkSmartPointer<vtkBezierSurfaceSource> bezierSource =
     vtkSmartPointer<vtkBezierSurfaceSource>::New();
   bezierSource->SetNumberOfControlPoints(controlPointsX,controlPointsY);
@@ -66,13 +66,14 @@ int main(int argc, char *argv[])
   vtkPolyData* planePoly = planeSource->GetOutput();
 
   unsigned int controlPointCount = 0;
-  for(int i=0; i<controlPointsX; i++)
+  for(unsigned int i = 0; i < controlPointsX; ++i)
     {
-      for(int j=0; j<controlPointsY; j++)
+      for(unsigned int j = 0; j < controlPointsY; ++j)
         {
           double point[3];
           planePoly->GetPoint(i*controlPointsY+j, point);
-          std::cout << "Point " << controlPointCount << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+//          std::cout << "Point " << controlPointCount << ": "
+//                    << point[0] << " " << point[1] << " " << point[2] << std::endl;
           bezierSource->SetControlPoint(i,j,point);
           controlPointCount++;
         }
@@ -101,7 +102,7 @@ int main(int argc, char *argv[])
   renderer->AddActor(actor);
   renderer->SetBackground(0.3,0.3,0.3); // Background color white
 
-  //Render and interact
+  // Render and interact
   renderWindow->Render();
   renderWindowInteractor->Start();
 
