@@ -47,9 +47,9 @@ vtkStandardNewMacro(vtkBezierSurfaceWidget);
 
 struct HandleInfo
 {
-  vtkSphereSource* Source;
-  vtkPolyDataMapper* Mapper;
-  vtkActor* Actor;
+  vtkSmartPointer<vtkSphereSource> Source;
+  vtkSmartPointer<vtkPolyDataMapper> Mapper;
+  vtkSmartPointer<vtkActor> Actor;
 
   // Control point indexes
   int xCPIndex;
@@ -71,12 +71,13 @@ struct HandleInfo
       return;
       }
 
-    this->Source = vtkSphereSource::New();
-    this->Mapper = vtkPolyDataMapper::New();
-    this->Actor = vtkActor::New();
+    this->Source = vtkSmartPointer<vtkSphereSource>::New();
+    this->Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    this->Actor = vtkSmartPointer<vtkActor>::New();
 
     this->Source->SetThetaResolution(16);
     this->Source->SetPhiResolution(16);
+    this->Source->Update();
 
 #if VTK_MAJOR_VERSION <= 5
     this->Mapper->SetInput(this->Source->GetOutput());
@@ -92,6 +93,7 @@ struct HandleInfo
     if(this->Source)
       {
       this->Source->SetRadius(r);
+      this->Source->Update();
       }
   }
 
@@ -100,6 +102,7 @@ struct HandleInfo
     if(this->Source)
       {
       this->Source->SetCenter(x, y, z);
+      this->Source->Update();
       }
   }
 
@@ -137,23 +140,16 @@ struct HandleInfo
       }
   }
 
-  void Finish()
-  {
-    this->Source->Delete();
-    this->Mapper->Delete();
-    this->Actor->Delete();
-    delete this;
-  }
 };
 
 vtkBezierSurfaceWidget::vtkBezierSurfaceWidget()
 {
   this->HandleSize = 0.0;
-  this->Source = 0;
-  this->Property = vtkProperty::New();
+  this->BezierSource = 0;
+  this->Property = vtkSmartPointer<vtkProperty>::New();
   this->Property->Register(this);
 
-  this->Picker = vtkPropPicker::New();
+  this->Picker = vtkSmartPointer<vtkPropPicker>::New();
   this->Picker->Register(this);
 
   this->CPGridMapper = 0;
@@ -170,21 +166,18 @@ vtkBezierSurfaceWidget::~vtkBezierSurfaceWidget()
     if(this->Property)
       {
       this->Property->UnRegister(this);
-      this->Property->Delete();
       }
-    if(this->Source)
+    if(this->BezierSource)
       {
-      this->Source->UnRegister(this);
+      this->BezierSource->UnRegister(this);
       }
     if(this->Picker)
       {
       this->Picker->UnRegister(this);
-      this->Picker->Delete();
       }
     if(this->CPGridActor)
       {
       this->GetRenderer()->RemoveViewProp(this->CPGridActor);
-      this->CPGridActor->Delete();
       }
 }
 
@@ -193,40 +186,40 @@ void vtkBezierSurfaceWidget::PrintSelf(ostream& os, vtkIndent indent)
   vtk3DWidget::PrintSelf(os, indent);
 }
 
-void vtkBezierSurfaceWidget::SetSource(vtkBezierSurfaceSource* source)
+void vtkBezierSurfaceWidget::SetBezierSource(vtkBezierSurfaceSource* bezierSource)
 {
-  if(this->Source == source)
+  if(this->BezierSource == bezierSource)
     {
     return;
     }
 
-  if(this->Source)
+  if(this->BezierSource)
     {
-    this->Source->UnRegister(this);
+    this->BezierSource->UnRegister(this);
     this->CPGridActor->Delete();
     this->CPGridMapper = 0;
     this->CPGridActor = 0;
     this->DestroyHandles();
     }
 
-  this->Source = source;
+  this->BezierSource = bezierSource;
 
-  if(this->Source)
+  if(this->BezierSource)
     {
-    this->Source->Register(this);
+    this->BezierSource->Register(this);
 
     this->CPGridMapper = vtkPolyDataMapper::New();
     this->CPGridActor = vtkActor::New();
 #if VTK_MAJOR_VERSION <= 5
-    this->CPGridMapper->SetInput( this->Source->GetControlPointsOutput() );
+    this->CPGridMapper->SetInput( this->BezierSource->GetControlPointsOutput() );
 #else
-    this->CPGridMapper->SetInputData( this->Source->GetControlPointsOutput() );
+    this->CPGridMapper->SetInputData( this->BezierSource->GetControlPointsOutput() );
 #endif
     this->CPGridActor->SetMapper(this->CPGridMapper);
     this->CPGridMapper->Delete();
     }
 
-  if(this->Interactor && this->Source)
+  if(this->Interactor && this->BezierSource)
     {
     SetEnabled(1);
     }
@@ -236,9 +229,9 @@ void vtkBezierSurfaceWidget::SetSource(vtkBezierSurfaceSource* source)
     }
 }
 
-vtkBezierSurfaceSource* vtkBezierSurfaceWidget::GetSource()
+vtkBezierSurfaceSource* vtkBezierSurfaceWidget::GetBezierSource()
 {
-  return this->Source;
+  return this->BezierSource;
 }
 
 void vtkBezierSurfaceWidget::SetProperty(vtkProperty* property)
@@ -277,7 +270,7 @@ vtkProperty* vtkBezierSurfaceWidget::GetProperty()
 void vtkBezierSurfaceWidget::SetInteractor(vtkRenderWindowInteractor* iren)
 {
   vtk3DWidget::SetInteractor(iren);
-  if(this->Interactor && this->Source)
+  if(this->Interactor && this->BezierSource)
     {
     SetEnabled(1);
     }
@@ -289,7 +282,7 @@ void vtkBezierSurfaceWidget::SetInteractor(vtkRenderWindowInteractor* iren)
 
 void vtkBezierSurfaceWidget::SetProp3D(vtkProp3D*)
 {
-  vtkOutputWindow::GetInstance()->DisplayWarningText("SetProp3D() is disabled. Use SetSource() instead");
+  vtkOutputWindow::GetInstance()->DisplayWarningText("SetProp3D() is disabled. Use SetBezierSource() instead");
 }
 
 void vtkBezierSurfaceWidget::SetInput(vtkDataSet* dataSet)
@@ -297,11 +290,11 @@ void vtkBezierSurfaceWidget::SetInput(vtkDataSet* dataSet)
   vtkBezierSurfaceSource* bss = reinterpret_cast<vtkBezierSurfaceSource*>(dataSet);
   if(!bss)
     {
-    vtkOutputWindow::GetInstance()->DisplayWarningText("SetInput() is disabled. Use SetSource() instead");
+    vtkOutputWindow::GetInstance()->DisplayWarningText("SetInput() is disabled. Use SetBezierSource() instead");
     }
   else
     {
-    SetSource(bss);
+    SetBezierSource(bss);
     }
 }
 
@@ -314,7 +307,7 @@ void vtkBezierSurfaceWidget::SetEnabled(int enabled)
 
     if(enabled)
       {
-        if( !(this->Interactor && this->Source) )
+        if( !(this->Interactor && this->BezierSource) )
           {
           return;
           }
@@ -379,6 +372,8 @@ void vtkBezierSurfaceWidget::SetEnabled(int enabled)
       {
       this->SizeHandles();
       }
+
+    this->Interactor->Render();
 }
 
 void vtkBezierSurfaceWidget::PlaceWidget(double[6])
@@ -391,10 +386,12 @@ void vtkBezierSurfaceWidget::SetPlaceFactor(double)
   vtkOutputWindow::GetInstance()->DisplayWarningText("SetPlaceFactor() is disabled");
 }
 
-void vtkBezierSurfaceWidget::SetHandleSize(double radius)
+void vtkBezierSurfaceWidget::SetHandleSize(const double radius)
 {
   //vtkOutputWindow::GetInstance()->DisplayWarningText("SetHandleSize() is disabled");
   this->HandleSize = radius;
+
+  this->Interactor->Render();
 }
 
 vtkRenderer* vtkBezierSurfaceWidget::GetRenderer()
@@ -429,9 +426,10 @@ void vtkBezierSurfaceWidget::DestroyHandles()
         {
         ren->RemoveActor(info->Actor);
         }
-      info->Finish();
     }
   this->HandleInfoList.clear();
+
+  this->Interactor->Render();
 }
 
 void vtkBezierSurfaceWidget::SizeHandles()
@@ -443,19 +441,21 @@ void vtkBezierSurfaceWidget::SizeHandles()
     HandleInfo* info = this->HandleInfoList[i];
     info->SetRadius(this->HandleSize);
     }
+
+  this->Interactor->Render();
 }
 
 void vtkBezierSurfaceWidget::ConstructHandles()
 {
   vtkRenderer* ren = this->GetRenderer();
 
-  if(!this->Source || !ren)
+  if(!this->BezierSource || !ren)
     {
     return;
     }
 
   // Construct as many mappers and actors as control points
-  int* vec = this->Source->GetNumberOfControlPoints();
+  int* vec = this->BezierSource->GetNumberOfControlPoints();
   int nrControlPts = vec[0] * vec[1];
   int index = 0;
   this->HandleInfoList.resize(nrControlPts, (HandleInfo*)0);
@@ -464,7 +464,7 @@ void vtkBezierSurfaceWidget::ConstructHandles()
       for(int j=0; j<vec[1]; j++)
         {
         double pt[3];
-        this->Source->GetControlPoint(i, j, pt);
+        this->BezierSource->GetControlPoint(i, j, pt);
 
         HandleInfo* info = new HandleInfo;
         info->Init();
@@ -487,6 +487,8 @@ void vtkBezierSurfaceWidget::ConstructHandles()
 
   this->Picker->PickFromListOn();
   this->SizeHandles();
+
+  this->Interactor->Render();
 }
 
 void vtkBezierSurfaceWidget::SelectHandle(int index)
@@ -650,7 +652,7 @@ void vtkBezierSurfaceWidget::OnLeftButtonUp()
   double p[3];
   info->GetPosition(p);
 
-  this->Source->SetControlPoint(info->xCPIndex, info->yCPIndex, p);
+  this->BezierSource->SetControlPoint(info->xCPIndex, info->yCPIndex, p);
 
   this->UnSelectCurrentHandle();
   this->EventCallbackCommand->SetAbortFlag(1);

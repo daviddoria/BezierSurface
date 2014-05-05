@@ -31,6 +31,7 @@ Contributors:
 
 #include "vtk3DWidget.h"
 #include "vtkObjectFactory.h"
+#include "vtkSmartPointer.h"
 #include <vector>
 
 class vtkActor;
@@ -50,8 +51,8 @@ public:
   vtkTypeRevisionMacro(vtkBezierSurfaceWidget, vtk3DWidget);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  void SetSource(vtkBezierSurfaceSource* source);
-  vtkBezierSurfaceSource* GetSource();
+  void SetBezierSource(vtkBezierSurfaceSource* bezierSource);
+  vtkBezierSurfaceSource* GetBezierSource();
 
   void SetProperty(vtkProperty* property);
   vtkProperty* GetProperty();
@@ -61,7 +62,7 @@ public:
   void SetProp3D(vtkProp3D* prop);
   void SetInput(vtkDataSet* dataSet);
   void SetEnabled(int val);
-  void PlaceWidget(double bounds[6]);
+  void PlaceWidget(double bounds[6]); // This is not implemented, but required by the vtk3DWidget interface
   void SetPlaceFactor(double val);
   void SetHandleSize(double size);
   double GetHandleSize() { return this->HandleSize; }
@@ -85,13 +86,13 @@ protected:
   virtual void OnLeftButtonUp();
 
 private:
-  vtkBezierSurfaceSource* Source;
+  vtkSmartPointer<vtkBezierSurfaceSource> BezierSource;
   std::vector<HandleInfo*> HandleInfoList;
   int CurrHandleIndex;
-  vtkProperty* Property;
-  vtkPropPicker* Picker;
-  vtkPolyDataMapper* CPGridMapper;
-  vtkActor* CPGridActor;
+  vtkSmartPointer<vtkProperty> Property;
+  vtkSmartPointer<vtkPropPicker> Picker;
+  vtkSmartPointer<vtkPolyDataMapper> CPGridMapper;
+  vtkSmartPointer<vtkActor> CPGridActor;
   double HandleSize;
 
 private:

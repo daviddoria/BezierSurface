@@ -65,20 +65,28 @@ int main(int argc, char *argv[])
 
   vtkPolyData* planePoly = planeSource->GetOutput();
 
+  unsigned int controlPointCount = 0;
   for(int i=0; i<controlPointsX; i++)
     {
       for(int j=0; j<controlPointsY; j++)
         {
-          bezierSource->SetControlPoint(i,j,planePoly->GetPoint(i*controlPointsY+j));
+          double point[3];
+          planePoly->GetPoint(i*controlPointsY+j, point);
+          std::cout << "Point " << controlPointCount << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+          bezierSource->SetControlPoint(i,j,point);
+          controlPointCount++;
         }
     }
+
+  std::cout << "Created " << controlPointCount << " control points." << std::endl;
+
   bezierSource->SetTransform(transform);
   bezierSource->Update();
 
   vtkSmartPointer<vtkBezierSurfaceWidget> widget =
     vtkSmartPointer<vtkBezierSurfaceWidget>::New();
   widget->SetInteractor(renderWindowInteractor);
-  widget->SetSource(bezierSource);
+  widget->SetBezierSource(bezierSource);
   widget->SetHandleSize(0.1);
   widget->On();
 
