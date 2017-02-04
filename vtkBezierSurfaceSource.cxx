@@ -50,7 +50,6 @@
 
 #include <cmath>
 
-vtkCxxRevisionMacro(vtkBezierSurfaceSource, "$Revision: 1.53 $");
 vtkStandardNewMacro(vtkBezierSurfaceSource);
 
 vtkBezierSurfaceSource::vtkBezierSurfaceSource()

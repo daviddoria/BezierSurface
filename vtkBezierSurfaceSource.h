@@ -44,7 +44,7 @@ class vtkBezierSurfaceSource : public vtkPolyDataAlgorithm
 {
 public:
   static vtkBezierSurfaceSource *New();
-  vtkTypeRevisionMacro(vtkBezierSurfaceSource, vtkPolyDataAlgorithm);
+  vtkTypeMacro(vtkBezierSurfaceSource, vtkPolyDataAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   vtkPolyData* GetControlPointsOutput();
