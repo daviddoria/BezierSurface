@@ -42,7 +42,6 @@
 
 typedef unsigned int uint;
 
-vtkCxxRevisionMacro(vtkBezierSurfaceWidget, "$Revision: 1.53 $");
 vtkStandardNewMacro(vtkBezierSurfaceWidget);
 
 struct HandleInfo

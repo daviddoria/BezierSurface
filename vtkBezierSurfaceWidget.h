@@ -48,7 +48,7 @@ class vtkBezierSurfaceWidget : public vtk3DWidget
 public:
   static vtkBezierSurfaceWidget *New();
 
-  vtkTypeRevisionMacro(vtkBezierSurfaceWidget, vtk3DWidget);
+  vtkTypeMacro(vtkBezierSurfaceWidget, vtk3DWidget);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   void SetBezierSource(vtkBezierSurfaceSource* bezierSource);
